@@ -1,6 +1,6 @@
 ---
 layout: default
-title: 
+title: ""
 ---
 
 # Do Nonprofit Missions Vary by the Political Ideology of Supporting Communities? Some Preliminary Results
