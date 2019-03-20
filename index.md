@@ -1,3 +1,8 @@
+---
+layout: default
+title: 
+---
+
 # Do Nonprofit Missions Vary by the Political Ideology of Supporting Communities? Some Preliminary Results
 
 Replication Files for:
