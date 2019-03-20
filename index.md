@@ -8,7 +8,7 @@ layout: default
 
 ### Data Sources
 
-2008 Presidential Election Data from Texas: [ [Harvard Election Data Archive](https://projects.iq.harvard.edu/eda/home) ] 
+2008 Presidential Election Data from Texas: [ [Harvard Election Data Archive](https://projects.iq.harvard.edu/eda/home) ]   
 ACS 2010 at Tract Level: [ [US Census](https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data/2010.html) ]  
 Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http://mcdc.missouri.edu/applications/geocorr2014.html) ]  
 2010 Nonprofit Firms and Locations: [ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]  
