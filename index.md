@@ -13,18 +13,15 @@ ACS 2010 at Tract Level: [ [US Census](https://www.census.gov/programs-surveys/a
 Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http://mcdc.missouri.edu/applications/geocorr2014.html) ]  
 2010 Nonprofit Firms and Locations: [ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]  
 
-[ DATA STEPS ](data.html)
+### [ Data Steps ](data.html)
 
+### [Matching](matching.html)
 
-### Matching
+### [Spatial Joins](spatial-joins.html)
 
+### [Analysis](analysis.html)
 
-
-### Spatial Joins
-
-### Analysis
-
-### Coding Missions
+### [Coding Missions](coding-mission.html)
 
 
 
