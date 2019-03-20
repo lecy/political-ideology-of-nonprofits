@@ -2,4 +2,5 @@ title: false
 logo: /assets/img/rep-dem.jpg
 description: false
 show_downloads: false
-theme: jekyll-theme-minimal
+theme: minimal-mistakes-jekyll
+minimal_mistakes_skin: "dirt"
