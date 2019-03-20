@@ -8,10 +8,10 @@ layout: default
 
 ### Data
 
-[ [Harvard Election Data Archive](https://projects.iq.harvard.edu/eda/home) ]
-[ [US Census ACS 2010](https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data/2010.html) ]
-[ [Voting Districts to Census Tracts Crosswalk](http://mcdc.missouri.edu/applications/geocorr2014.html) ]
-[ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]
+[ [Harvard Election Data Archive](https://projects.iq.harvard.edu/eda/home) ]  
+[ [US Census ACS 2010](https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data/2010.html) ]  
+[ [Voting Districts to Census Tracts Crosswalk](http://mcdc.missouri.edu/applications/geocorr2014.html) ]  
+[ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]  
 
 ### Matching
 
