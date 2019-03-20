@@ -1,2 +1,3 @@
-# political-ideology-of-nonprofits
-Replication files for the paper:  Lecy J, Ashley S &amp; Santamarina F (2018). "Do Nonprofit Missions Vary by the Political Ideology of Supporting Communities? Some Preliminary Results". Public Performance and Management Review
+# Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results.
+
+Replication files for the paper:  Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). "Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results." *Public Performance & Management Review*, 42(1), 115-141.
