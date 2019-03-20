@@ -1,5 +1,6 @@
-title: ""
+title: "Replication"
 logo: /assets/img/rep-dem.jpg
 description: "" 
 show_downloads: false
+show_footer: false
 theme: jekyll-theme-minimal
