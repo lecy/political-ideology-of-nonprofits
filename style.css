@@ -14,5 +14,9 @@ footer {
     display: none;
 }
 .header h1 {
+    display: none !important;
+    color: red;
+}
+#header h1 {
     display: none;
 }
