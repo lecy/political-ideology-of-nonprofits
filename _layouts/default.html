@@ -9,6 +9,7 @@
 
 
     <link rel="stylesheet" href="https://raw.githubusercontent.com/orderedlist/minimal/master/stylesheets/styles.css">
+    <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/assets/img/cactus.png">
 
 
   </head>
@@ -206,6 +207,24 @@ hr {
   margin:0 0 20px;
 }
 
+    
+.button {
+  background-color: black;
+  color: white;
+  border: 1px solid black;
+  padding: 7px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
+.button:hover {
+  background-color: #337ab7; /* blue */
+  color: white;
+}
+    
 footer {
   width:270px;
   float:left;
@@ -294,7 +313,9 @@ footer {
 <div class="wrapper">
       
       <header>
+          <a href="https://github.com/lecy/political-ideology-of-nonprofits">
           <img src="https://github.com/lecy/political-ideology-of-nonprofits/blob/master/assets/img/rep-dem.jpg?raw=true" alt="Logo">
+          </a>
           <p style="font-size:8px;text-align:center;">Image source: The Economist</p>
       </header>
       
@@ -302,6 +323,10 @@ footer {
 
       {{content}}
 
+      <br>
+      <a class="button" href="https://github.com/lecy/political-ideology-of-nonprofits/issues/new">Discuss</a>
+          
+          
       </section>
       
       <footer>
