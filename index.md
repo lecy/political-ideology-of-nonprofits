@@ -1,5 +1,6 @@
 ---
 layout: default
+title: Replication Files
 ---
 
 # Replication Files
@@ -13,7 +14,7 @@ ACS 2010 at Tract Level: [ [US Census](https://www.census.gov/programs-surveys/a
 Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http://mcdc.missouri.edu/applications/geocorr2014.html) ]  
 2010 Nonprofit Firms and Locations: [ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]  
 
-### [ Data Steps ](data.html)
+### [ Data Steps ](/DATA/Data-Steps.html)
 
 ### [Matching](matching.html)
 
