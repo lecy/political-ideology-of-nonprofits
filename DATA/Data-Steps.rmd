@@ -2,12 +2,12 @@
 title: "Data Steps"
 output:
   html_document:
-    theme: readable
+    theme: united
     df_print: paged
     highlight: tango
     smart: false
     toc: yes
-    toc_float: yes
+    toc_float: no
 ---
 
 
@@ -39,6 +39,8 @@ install.packages( "rgdal" )
 install.packages( "acs" )
 install.packages( "censusapi" )
 install.packages( "rgenoud" )
+install.packages( "dplyr" )
+install.packages( "stargazer" )
 ```
 
 
@@ -114,9 +116,10 @@ names( census ) <- c("state","county","tract","NAME",
                      "hispanic","white","black",
                      "geoid")
 
-# Remove mission values
+# Remove missing values
 census$income[ census$income == -666666666 ] <- NA
 census$medianage[ census$medianage == -666666666 ] <- NA
+
 # Delete no population cases so rates are not infinite
 census$totalpop[ census$totalpop == 0 ] <- NA
 census$povbase[ census$povbase == 0 ] <- NA
