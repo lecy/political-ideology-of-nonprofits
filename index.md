@@ -29,7 +29,7 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ## Source Code
 
-[GitHub Repo](https://github.com/lecy/political-ideology-of-nonprofits/tree/master/DATA)
+### [GitHub](https://github.com/lecy/political-ideology-of-nonprofits/tree/master/DATA)
 
 
 
