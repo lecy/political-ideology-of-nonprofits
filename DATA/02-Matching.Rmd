@@ -49,7 +49,13 @@ library( stargazer )
 
 This file was generated from the data steps. 
 
+
 ```{r}
+dat <- read.csv( "https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/CensusPlusVotingAll.csv", stringsAsFactors=F )
+```
+
+
+```{r, eval=F}
 dat <- read.csv( "CensusPlusVotingAll.csv", stringsAsFactors=F )
 
 dat <- 
@@ -382,22 +388,39 @@ t.test( pop.density ~ dem.super, data=m.dat2 )
 
 
 
+<br>
+<hr>
+<br>
+
+
+# Citation
+
+Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results. *Public Performance & Management Review*, 42(1), 115-141. [DOWNLOAD](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/assets/Lecy-Ashley-Santamarina-PPMR-2019.pdf)
 
 
 
-
-
-
+<br>
+<hr>
+<br>
+<br>
 
 
 ```{css, echo=F, eval=T}
 p {
-color: black;
-margin: 0 0 20px 0;
+  color: black;
+  font-size:1.2em;
+  margin: 20px 0 20px 0 !important;
 }
 
+p.caption {
+  text-align: center;
+  font-weight: bold;
+}
+
+th { font-weight: bold; }
+
 td {
-    padding: 3px 10px 3px 10px;
+    padding: 3px 10px 3px 10px !important;
     text-align: center;
 }
 
@@ -409,12 +432,12 @@ table
     margin-bottom:100px;
 }
 
-h1, h2{
-  margin-top:100px;
-  margin-bottom:20px;
+h1, h2, h3{
+  margin-top:100px !important;
+  margin-bottom:20px !important;
 }
 
-H5{
+h5{
     text-align: center;
     color: gray;
     font-size:0.8em;
@@ -425,20 +448,17 @@ img {
     display: block;
     margin-right: auto;
     margin-left: auto;
-    margin-top:30px;
-    margin-bottom:20px;
-}
-
-pre {
-  overflow-x: auto;
-}
-
-pre code {
-   margin-bottom:50px;
+    margin-top:30px !important;
+    margin-bottom:30px !important;
 }
 
 
+.sourceCode {
+   margin-top:50px;
+}
 
+.pagedtable-wrapper {
+   margin-bottom:30px;
+}
 ```
-
 
