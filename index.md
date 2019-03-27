@@ -14,7 +14,7 @@ ACS 2010 at Tract Level: [ [US Census](https://www.census.gov/programs-surveys/a
 Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http://mcdc.missouri.edu/applications/geocorr2014.html) ]  
 2010 Nonprofit Firms and Locations: [ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]  
 
-### [ Data Steps ](/DATA/Data-Steps.html)
+### [ Data Steps ](/DATA/01-data-steps.html)
 
 ### [Matching](matching.html)
 
@@ -25,6 +25,9 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 ### [Coding Missions](coding-mission.html)
 
 
+# Source Code and Raw Data
+
+[GitHub Repo](https://github.com/lecy/political-ideology-of-nonprofits/tree/master/DATA)
 
 
 
