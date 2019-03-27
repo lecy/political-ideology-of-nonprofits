@@ -24,6 +24,13 @@ knitr::opts_chunk$set(echo = TRUE, warning=F, message=F, fig.width=8)
 
 # Sample Framework
 
+The goal of the study is to build a sample framework whereby we can compare nonprofits from super-majority voting districts in order to determine how nonprofit missions vary by the political ideology of the communities in which they are located. 
+
+Since democratic and republican super-majority voting districts typically look very different (suburban and white versus urban and diverse), we must first match them based upon demographics in order to create balanced voting districts (similar poverty rates, percentage minorities, and population density in each) that differ primarily on political ideology.
+
+The replication files here explain the process of linking voting data to census data, finding voting districts that are very similar demographically be very different in voting patterns, and then locating nonprofits within those districts to analyze differences in mission. 
+
+
 ```{r f1, fig.cap="Relationship between the three data sources in our research database.", out.width='80%', echo=F }
 knitr::include_graphics( "assets/data-steps-01.png" )
 ```
@@ -155,7 +162,7 @@ my.censuskey <- "your_key_here"
 
 
 
-**NOTE**: This study uses the **acs** package but I would highly recommend using Hannah Recht's **censusapi** package. It is much easier to use!
+**NOTE**: The original study uses the **acs** package but I would highly recommend using Hannah Recht's **censusapi** package. It is much easier to use!
 
 For details on poverty measures see:
 
