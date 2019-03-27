@@ -219,9 +219,10 @@ census %>%
 
 
 
+Capture the study data in case the API changes:
 
 ```{r, eval=F}
-write.csv( census, "TexasCensusData2010.csv", rownames=F )
+write.csv( census, "TexasCensusTractData2010.csv", row.names=F )
 ```
 
 
