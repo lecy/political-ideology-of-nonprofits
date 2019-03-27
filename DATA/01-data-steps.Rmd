@@ -1,0 +1,568 @@
+---
+title: "Building the Research Database"
+output:
+  html_document:
+    theme: united
+    df_print: paged
+    highlight: tango
+    smart: false
+    toc: yes
+    toc_float: no
+---
+
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning=F, message=F, fig.width=8)
+
+```
+
+
+
+
+
+# Sample Framework
+
+```{r f1, fig.cap="Relationship between the three data sources in our research database.", out.width='80%', echo=F }
+knitr::include_graphics( "assets/data-steps-01.png" )
+```
+
+
+<br>
+<br>
+
+
+```{r f2, fig.cap="Dataset after all merges are complete, prior to matching.", out.width='80%', echo=F }
+knitr::include_graphics( "assets/data-steps-02.png" )
+```
+
+
+
+<br>
+<br>
+
+
+### Sampling Framework
+
+We followed steps are reported in Appendix A of the paper. They show the process for arriving at the 125 nonprofit mission statements that are coded for the paper.
+
+8,400 total voting districts in Texas
+
+* 1,451 Democratic supermajority districts  
+* 2,886 Republican supermajority districts  
+
+3,513 census tracts in Texas
+
+* 1,305 voting districts have IDs that can be matched to census tracts  
+* 216 Democratic supermajority districts remained  
+* 464 Republican supermajority districts remained  
+
+Of the 680 super-majority voting districts that can be linked to census data, the matching procedure generated 102 districts in the balanced sample:
+
+* 51 Democratic supermajority districts
+* 51 Republican supermajority districts
+
+Of the 22,295 nonprofits in the state, 323 are located in the matched supermajority districts and were used for analysis of NTEE codes and comparison of revenue and nonprofit age.
+
+* 158 nonprofits from Democratic supermajority districts  
+* 165 nonprofits from Republican supermajority districts  
+
+Of these 323 nonprofits located in the matched voting districts, we were able to find mission statements listed on websites for 125. 
+
+* 74 nonprofits from Democratic supermajority districts  
+* 51 nonprofits from Republican supermajority districts  
+
+
+
+**UPDATES**
+
+In the process of putting together replication files we discovered one minor error in reporting the sample framework: 
+
+*Appendix A* reports 3,513 census tracts in Texas in 2010.
+
+There are actually 5,265 census tracts in Texas 2010, but only 3,513 in the voter-district-census-tract crosswalk obtained through the Missouri Census Data Center (see below).
+
+We were also able to fix more voter district IDs to increase the merge rate in these replication examples. Compared to *Appendix A* in the paper (reported above) we now have: 
+
+* 3,496 voting districts have IDs that can be matched to census tracts  
+* 738 Democratic supermajority districts remained  
+* 900 Republican supermajority districts remained 
+
+In total that equals 1,638 supermajority voting districts that can be linked to primary census tracts, more than the 680 super-majority voting districts reported in *Appendix A* originally. 
+
+These things do not change the results of the study since the results represent a comparison of 102 nonprofits from matched and demographically balanced voting districts (51 republican and 51 democratic districts). So even though the matched sample was smaller, it still retains the properties that are important for achieving high internal validity with propensity score matching - only comparing the "twins" in the data instead of the full sample.
+
+The updates are included here for anyone that wants to extend the study. 
+
+
+# Data Sources
+
+2008 Presidential Election Data from Texas: [ [Harvard Election Data Archive](https://projects.iq.harvard.edu/eda/home) ]   
+ACS 2010 at Tract Level: [ [US Census](https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data/2010.html) ]  
+Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http://mcdc.missouri.edu/applications/geocorr2014.html) ]  
+2010 Nonprofit Firms and Locations: [ [NCCS Core Files](https://nccs-data.urban.org/index.php) ]  
+
+
+
+# R Packages
+
+```{r, eval=F}
+install.packages( "rgdal" )
+install.packages( "acs" )
+install.packages( "censusapi" )
+install.packages( "rgenoud" )
+install.packages( "dplyr" )
+install.packages( "stargazer" )
+```
+
+
+```{r}
+library( rgdal )      # read GIS shapefiles
+library( acs )        # get data from census
+library( censusapi )  # get data from census
+library( rgenoud )    # optimization
+library( dplyr )      # data wrangling
+library( stargazer )  # pretty tables
+```
+
+
+
+# Gathering Census Data
+
+This example uses the **acs** package in R to download 2010 American Community Survey data from the US Census. 
+
+You can find codes for variable names at the Census API site:
+
+<https://api.census.gov/data/2010/acs/acs5/variables.html>
+
+
+
+```{r, echo=F}
+api.key.install( key="b431c35dad89e2863681311677d12581e8f24c24" )
+
+my.censuskey <- "b431c35dad89e2863681311677d12581e8f24c24"
+```
+
+
+You will need to get a free Census API key: <https://api.census.gov/data/key_signup.html>
+
+```{r, eval=F}
+api.key.install( key="your_key_here" )
+
+my.censuskey <- "your_key_here"
+```
+
+
+
+**NOTE**: This study uses the **acs** package but I would highly recommend using Hannah Recht's **censusapi** package. It is much easier to use!
+
+For details on poverty measures see:
+
+https://www.socialexplorer.com/data/ACS2013_5yr/metadata/?ds=ACS13_5yr&table=B17001
+
+
+```{r, eval=T}
+
+census <- getCensus( name="acs/acs5", 
+                       vintage=2010, 
+                       key=my.censuskey, 
+                       vars=c( "NAME", 
+                               "B01002A_001E",  # median age
+                               "B19013_001E",   # median household income
+                               "B01003_001E",   # total population"B01003_001"
+                               "B17001_002E",   # poverty
+                               "B17001_001E",   # population used for pov
+                               "B03003_003E",   # hispanic
+                               "B02001_002E",   # race.white
+                               "B02001_003E"),  # race.black
+                       region="tract:*", 
+                       regionin="state:48")     # texas
+
+names( census )
+
+census$geoid <- paste0( census$state, census$county, census$tract )
+
+names( census ) <- c("state","county","tract","NAME",
+                     "medianage","income",
+                     "totalpop","poverty","povbase",
+                     "hispanic","white","black",
+                     "geoid")
+
+# Remove missing values
+census$income[ census$income == -666666666 ] <- NA
+census$medianage[ census$medianage == -666666666 ] <- NA
+
+# Delete zero population cases so rates are finite
+census$totalpop[ census$totalpop == 0 ] <- NA
+census$povbase[ census$povbase == 0 ] <- NA
+
+census <- 
+  census %>%
+  mutate( poverty = round( 100*(poverty/povbase), 2),
+          hispanic = round( 100*(hispanic/totalpop), 2),
+          white = round( 100*(white/totalpop), 2),
+          black = round( 100*(black/totalpop), 2) )
+
+census <- select( census, - povbase ) # drop extra pop variable   
+
+head( census )
+```
+
+
+```{r, results="asis"}
+census %>%
+  select( medianage, income, totalpop, poverty,
+          hispanic, white, black ) %>% 
+          stargazer( type = "html", digits=0 )
+```
+
+
+
+
+```{r, eval=F}
+write.csv( census, "TexasCensusData2010.csv", rownames=F )
+```
+
+
+
+
+
+
+
+
+
+# Voting Districts Crosswalk
+
+Voting districts and census tracts do not all share contiguous boundaries, so merging voting data and census data can be tricky. The Missouri Census Data Center has created tools that maps voting districts to census tracts using geographic apportionment. You can visit the MABLE Geocorr14 Geographic Correspondence Engine here:
+
+<http://mcdc.missouri.edu/websas/geocorr14.html>
+
+A correspondence table has been created by selecting the 2010 Census Tracts and Voting Tabulation Districts and is saved as the file "crosswalk.csv".
+
+Note, the variable **pop10** comes from the crosswalk and refers to **voting district population**. The variable **totalpop** comes from the 2010 Census ACS and refers to the **census tract population**.
+
+![](assets/geocorr_correspondence_table.png)
+
+Since the relationships are not nested it will not be a one-to-one relationship, i.e. one voting district can match to multiple census tracts. As a result, we select the census tract for each voting district that has the highest apportionment rate (geographical overlap). 
+
+The mean apportionment rate is 89% (standard deviation of 17%), with a median of 100% overlap. 
+
+
+
+
+```{r}
+crosswalk <- read.csv( "crosswalk.csv", colClasses="character" )
+
+head( crosswalk )
+
+crosswalk <- crosswalk[ -1 , ] # drop first row of labels
+```
+
+Save the TX crosswalk for ease of sharing replication files:
+
+```{r, eval=F}
+crosswalk$state <- substr( crosswalk$county, 1, 2 )
+table( crosswalk$state )
+crosswalk.tx <- filter( crosswalk, state == "48" )
+write.csv( crosswalk.tx, "VTDtoTractCrosswalkTX.csv", row.names=F )
+```
+
+
+
+### Create a crosswalk geoid
+
+```{r}
+crosswalk$tract.key <- paste( crosswalk$county, 
+                              gsub( "\\.","", crosswalk$tract), sep="" )
+head( crosswalk$tract.key )
+```
+
+
+### Add census data to voting district IDs
+
+Drop duplicate variable names:
+
+```{r}
+crosswalk <- select( crosswalk, tract.key, county, cntyname, tract, vtdname, pop10, afact  )
+census <- select( census, - county, - tract  )
+```
+
+
+```{r}
+census.dat <- merge( crosswalk, census, by.x="tract.key", by.y="geoid" )
+nrow( census.dat )
+head( census.dat )
+```
+
+
+
+
+
+# Voter Data
+
+Data was obtained from the Harvard Election Data Archive project , a source for 2008 presidential election results at a voting district level for all 50 states. Texas contains 8,400 separate voting districts (VTDs). In the 2008 election of John McCain versus Barack Obama Texas had 1,451 Democratic supermajority districts and 2,886 Republican supermajority districts, representing 51% of all voting districts in the state.
+
+http://projects.iq.harvard.edu/eda/
+
+The data comes as a shapefile with historic voting data embedded, so we need to load the shapefile using the **rgdal** package in R and extract the historic voting data frame.
+
+Select Data Dictionary:
+
+* CNTY - County FIPS ID  
+* VTD - Voting District ID  
+* Shape_area - Area of voting district polygon 
+* Pres_D_08 - Number of presidential votes for Democratic candidate in 2008
+* Pres_R_08 - Number of presidential votes for Republican candidate in 2008
+
+
+
+
+```{r, eval=T}
+# library( rgdal )
+TX <- readOGR(".","Texas_VTD" )
+```
+
+```{r}
+par( mar=c(0,0,4,0) )
+plot( TX, main="All Voting Districts in TX" )
+```
+
+
+
+### Convert spatial object to a dataframe
+
+```{r}
+tx <- as.data.frame( TX )
+nrow( tx )
+head( tx )
+```
+
+
+Voter district patterns. 
+
+```{r f3, fig.cap="Supermajority Districts" }
+dem.count <- as.numeric( as.character( tx$Pres_D_08 ))
+rep.count <- as.numeric( as.character( tx$Pres_R_08 ))
+dem <- dem.count / ( dem.count + rep.count )
+
+sum( dem <= 0.3, na.rm=T ) # supermajority republican districts
+sum( dem >= 0.7, na.rm=T ) # supermajority democratic districts
+
+h <- hist( dem, breaks=100, plot=FALSE )
+cuts <- cut( h$breaks, c(-0.1,0.3,0.7,1.1), labels=c("red","gray","steelblue") )
+plot( h, col=as.character(cuts),  
+      main="Percentage Voting for Obama by District",
+      yaxt="n", ylab="", xlab="Percent of Votes for Obama by District")
+```
+
+
+
+
+
+
+
+## Create Compatible IDs
+
+The **vtdname** in the Census to VTD Crosswalk file, and the **vtdkey** in the Voting dataset are currently incompatible. 
+
+The **vtdname** variables has four forms:
+
+* 480190407  
+* 48041010A, 48041010B, etc. 
+* Vtng Dist 3111 
+* Vtng Dist 03-3 
+
+Each follows a format of:  SS-CCC-DIST
+
+SS = state fips code (2 digits)
+CCC = county fips code (3 digits)
+DIST = voting district (4 characters)
+
+```{r}
+head( census.dat$vtdname, 50 )
+```
+
+
+To standardize the VTD IDs:
+
+```{r}
+# Census Data
+vtdnm <-  census.dat$vtdname
+vtdnm <- gsub( "Vtng Dist ", "xxxxx", vtdnm )
+head( vtdnm, 50 )
+```
+
+
+```{r}
+# table( nchar( vtdnm ) )  # should all be 9 characters
+vtd.temp <- substr( vtdnm, 6, 9 )
+vtd.key1 <- paste0( census.dat$county, vtd.temp )
+census.dat$vtd.key1 <- vtd.key1
+head( census.dat$vtd.key1, 50 )
+```
+
+
+
+
+```{r}
+# Voting Data
+# TX state fips = 48
+
+fips <- 48000 + as.numeric( as.character( tx$CNTY ) )
+vtd.key2 <- paste0( fips, as.character( tx$VTD ) )
+
+# table( nchar( vtd.key2 ) )  # should all be 9 characters
+# vtd.key2[ nchar( vtd.key2 ) == 10 ]  # not sure about these 126
+
+head( vtd.key2, 50 )
+```
+
+
+### Fields to Merge
+
+* vtd.key2 - voter district id
+* Pres_D_08 - votes cast for Obama in 2008
+* Pres_R_08 - votes cast for McCain in 2008
+* Shape_area - area of the voting district used for population density measures
+
+```{r}
+tx$vtd.key2 <- vtd.key2
+tx <- tx[ , c( "vtd.key2", "Pres_D_08", "Pres_R_08", "Shape_area" ) ]
+head( tx )
+```
+
+
+
+## Merge Voting and Census Data
+
+```{r}
+full.dat <- merge( census.dat, tx, by.x="vtd.key1", by.y="vtd.key2" )
+nrow( full.dat )
+head( full.dat )
+```
+
+
+
+# Descriptives of the Merged Sample
+
+Of the 8,400 voting districts, we can only match 3,496 to census data. The visual descriptives of this sample are as follows:
+
+```{r f4, fig.cap="Supermajority Districts" }
+dem.count <- as.numeric( as.character( full.dat$Pres_D_08 ))
+rep.count <- as.numeric( as.character( full.dat$Pres_R_08 ))
+dem <- dem.count / ( dem.count + rep.count )
+
+sum( dem <= 0.3, na.rm=T ) # supermajority republican districts
+sum( dem >= 0.7, na.rm=T ) # supermajority democratic districts
+
+h <- hist( dem, breaks=100, plot=FALSE )
+cuts <- cut( h$breaks, c(-0.1,0.3,0.7,1.1), labels=c("red","gray","steelblue") )
+plot( h, col=as.character(cuts),  
+      main="Percentage Voting for Obama by District",
+      yaxt="n", ylab="", xlab="Percent of Votes for Obama by District")
+```
+
+
+
+# Save final research database
+
+Number of voting districts with both voting and census data available: `r nrow(full.dat)`
+
+```{r}
+write.csv( full.dat, "CensusPlusVotingAll.csv", row.names=F )
+```
+
+
+
+
+
+
+
+
+
+
+# Original Census Query (deprecated):
+
+The original census data was obtained through the API using the `acs` package.
+
+The `censusapi` package above is a much more elegant method. For replication purposes the original code is included [here](01-01-deprecated-data-steps.html).
+
+
+
+
+<br>
+<hr>
+<br>
+
+
+# Citation
+
+Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results. *Public Performance & Management Review*, 42(1), 115-141. [DOWNLOAD](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/assets/Lecy-Ashley-Santamarina-PPMR-2019.pdf)
+
+
+
+<br>
+<hr>
+<br>
+<br>
+
+
+```{css, echo=F, eval=T}
+p {
+  color: black;
+  font-size:1.2em;
+  margin: 20px 0 20px 0 !important;
+}
+
+p.caption {
+  text-align: center;
+  font-weight: bold;
+}
+
+th { font-weight: bold; }
+
+td {
+    padding: 3px 10px 3px 10px !important;
+    text-align: center;
+}
+
+table
+{ 
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:80px;
+    margin-bottom:100px;
+}
+
+h1, h2, h3{
+  margin-top:100px !important;
+  margin-bottom:20px !important;
+}
+
+h5{
+    text-align: center;
+    color: gray;
+    font-size:0.8em;
+}
+
+img {
+    max-width: 90%;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top:30px !important;
+    margin-bottom:30px !important;
+}
+
+
+.sourceCode {
+   margin-top:50px;
+}
+
+.pagedtable-wrapper {
+   margin-bottom:30px;
+}
+```
+
+
