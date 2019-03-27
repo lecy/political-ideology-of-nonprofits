@@ -36,6 +36,10 @@ knitr::include_graphics( "assets/data-steps-01.png" )
 ```
 
 
+TRACT represents Census tracts that contain geographic data about the population. Voting districts are the geographic units of aggregation for voting data within states. These two datasets need to be merged in order to have both demographic and voting data. 
+
+The nonprofit firm database comes from tax records that have been compiled by the Urban Institute (NCCS Core files). The unit of analysis of the study is nonprofit missions. We filter voting districts to eliminate those that are not supermajority districts, then further eliminate voting districts that cannot be matched to doppelgangers (for each republican supermajority district, find one democratic supermajority district that is a demographic "twin"). The add nonprofits in those districts to the sample. Repeat for all that can be reasonably matched. 
+
 <br>
 <br>
 
