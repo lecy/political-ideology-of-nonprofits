@@ -145,11 +145,18 @@ library( stargazer )  # pretty tables
 
 # Gathering Census Data
 
-This example uses the **acs** package in R to download 2010 American Community Survey data from the US Census. 
+This study uses 2010 American Community Survey data from the US Census. 
 
 You can find codes for variable names at the Census API site:
 
 <https://api.census.gov/data/2010/acs/acs5/variables.html>
+
+For details on poverty measures see:
+
+https://www.socialexplorer.com/data/ACS2013_5yr/metadata/?ds=ACS13_5yr&table=B17001
+
+
+**NOTE**: The original study uses the **acs** package but I would highly recommend using Hannah Recht's awesome **censusapi** package. It is much easier to use!
 
 
 
@@ -170,15 +177,8 @@ my.censuskey <- "your_key_here"
 
 
 
-**NOTE**: The original study uses the **acs** package but I would highly recommend using Hannah Recht's **censusapi** package. It is much easier to use!
-
-For details on poverty measures see:
-
-https://www.socialexplorer.com/data/ACS2013_5yr/metadata/?ds=ACS13_5yr&table=B17001
-
-
 ```{r, eval=T}
-
+# library( censusapi )
 census <- getCensus( name="acs/acs5", 
                        vintage=2010, 
                        key=my.censuskey, 
@@ -204,6 +204,13 @@ names( census ) <- c("state","county","tract","NAME",
                      "hispanic","white","black",
                      "geoid")
 
+
+```
+
+
+## Variable Transformations
+
+```{r}
 # Remove missing values
 census$income[ census$income == -666666666 ] <- NA
 census$medianage[ census$medianage == -666666666 ] <- NA
@@ -212,6 +219,7 @@ census$medianage[ census$medianage == -666666666 ] <- NA
 census$totalpop[ census$totalpop == 0 ] <- NA
 census$povbase[ census$povbase == 0 ] <- NA
 
+# Calculating rates and percentages
 census <- 
   census %>%
   mutate( poverty = round( 100*(poverty/povbase), 2),
@@ -219,7 +227,8 @@ census <-
           white = round( 100*(white/totalpop), 2),
           black = round( 100*(black/totalpop), 2) )
 
-census <- select( census, - povbase ) # drop extra pop variable   
+# drop extra pop variable 
+census <- select( census, - povbase )   
 
 head( census )
 ```
