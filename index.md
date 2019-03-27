@@ -3,7 +3,7 @@ layout: default
 title: Replication Files
 ---
 
-# Replication Files
+# Replication Files for:
 
 #### Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results. *Public Performance & Management Review*, 42(1), 115-141. [DOWNLOAD](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/assets/Lecy-Ashley-Santamarina-PPMR-2019.pdf)
 
@@ -26,6 +26,7 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ### [Coding Missions](coding-mission.html)
 
+<br>
 
 ## Source Code
 
