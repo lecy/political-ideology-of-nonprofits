@@ -18,7 +18,7 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ### [ Data Steps ](/DATA/01-data-steps.html)
 
-### [Matching](/DATA/01-matching.html)
+### [Matching](/DATA/02-matching.html)
 
 ### [Spatial Joins](/DATA/03-spatial-joins.html)
 
