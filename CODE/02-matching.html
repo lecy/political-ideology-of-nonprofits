@@ -1832,7 +1832,7 @@ summary {
 <div id="load-data" class="section level1">
 <h1>Load Data</h1>
 <p>This file was generated from the data steps.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>( <span class="st">&quot;https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/CensusPlusVotingAll.csv&quot;</span>, <span class="dt">stringsAsFactors=</span>F )</span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>( <span class="st">&quot;https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/02-processed-data/CensusPlusVotingAll.csv&quot;</span>, <span class="dt">stringsAsFactors=</span>F )</span>
 <span id="cb3-2"><a href="#cb3-2"></a></span>
 <span id="cb3-3"><a href="#cb3-3"></a>dat &lt;-<span class="st"> </span></span>
 <span id="cb3-4"><a href="#cb3-4"></a><span class="st">  </span>dat <span class="op">%&gt;%</span><span class="st"> </span></span>
@@ -2395,10 +2395,10 @@ Total run time : 0 hours 0 minutes and 21 seconds</code></pre>
 <pre><code>## [1] 218  13</code></pre>
 <p>We now have 109 rows for democrats, and 109 rows of their republican dopelganger districts.</p>
 <p>Save the new data frame:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">write.csv</span>( balanced.data, <span class="st">&quot;matched-pairs.csv&quot;</span>, <span class="dt">row.names=</span>F )</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">write.csv</span>( balanced.data, <span class="st">&quot;../DATA/02-processed-data/matched-pairs.csv&quot;</span>, <span class="dt">row.names=</span>F )</span></code></pre></div>
 <p>Although not necessary, we might also save the list of which cases are matched:</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>matches &lt;-<span class="st"> </span><span class="kw">na.omit</span>( matches )</span>
-<span id="cb24-2"><a href="#cb24-2"></a><span class="kw">write.csv</span>( matches, <span class="st">&quot;matched-pairs-index.csv&quot;</span>, <span class="dt">row.names=</span>F )</span></code></pre></div>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="kw">write.csv</span>( matches, <span class="st">&quot;../DATA/02-processed-data/matched-pairs-index.csv&quot;</span>, <span class="dt">row.names=</span>F )</span></code></pre></div>
 <p>It may come in handy if you want to visualize matches, or do some post-hoc sensitivity analysis.</p>
 <p>One other good reason to set the random seed before creating the matched samples.</p>
 </div>

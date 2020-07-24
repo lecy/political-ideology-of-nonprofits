@@ -277,7 +277,7 @@ The mean apportionment rate is 89% (standard deviation of 17%), with a median of
 
 
 ```{r}
-crosswalk <- read.csv( "crosswalk.csv", colClasses="character" )
+crosswalk <- read.csv( "../DATA/01-raw-data/crosswalk.csv", colClasses="character" )
 
 head( crosswalk )
 
@@ -290,7 +290,7 @@ Save the TX crosswalk for ease of sharing replication files:
 crosswalk$state <- substr( crosswalk$county, 1, 2 )
 table( crosswalk$state )
 crosswalk.tx <- filter( crosswalk, state == "48" )
-write.csv( crosswalk.tx, "VTDtoTractCrosswalkTX.csv", row.names=F )
+write.csv( crosswalk.tx, "../DATA/02-processed-data/VTDtoTractCrosswalkTX.csv", row.names=F )
 ```
 
 
@@ -345,7 +345,7 @@ Select Data Dictionary:
 
 ```{r, eval=T}
 # library( rgdal )
-TX <- readOGR(".","Texas_VTD" )
+TX <- readOGR( "../DATA/01-raw-data","Texas_VTD" )
 ```
 
 ```{r}
@@ -494,8 +494,8 @@ plot( h, col=as.character(cuts),
 
 Number of voting districts with both voting and census data available: `r nrow(full.dat)`
 
-```{r}
-write.csv( full.dat, "CensusPlusVotingAll.csv", row.names=F )
+```{r, eval=F}
+write.csv( full.dat, "../DATA/02-processed-data/CensusPlusVotingAll.csv", row.names=F )
 ```
 
 
