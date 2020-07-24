@@ -24,7 +24,7 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ### Coding Mission Statements  
 
-- [ [taxonomies + protocol](CODE/mission-coding-protocols-final.pdf) ]  
+- [ [taxonomies + protocol](assets/mission-coding-protocols-final.pdf) ]  
 - [ [coded mission statements](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/DATA/03-mission-statement-data/coded-mission-statements.xlsx) ]  
 - [ [intercoder reliabiility tests](https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/CODE/intercoder-reliability.R) ]  
 
