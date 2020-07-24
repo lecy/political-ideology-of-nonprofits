@@ -335,10 +335,17 @@ ggplot( ddat, aes( x=pop.density, fill=party )) +
 <br>
 
 
-## Citation
+# Citation
 
 Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results. *Public Performance & Management Review*, 42(1), 115-141. [DOWNLOAD](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/assets/Lecy-Ashley-Santamarina-PPMR-2019.pdf)
 
+**Matching Packages:**
+
+Iacus, S. M., King, G., & Porro, G. (2012). Causal inference without balance checking: Coarsened exact matching. Political analysis, 20(1), 1-24.
+
+Ho, D., Imai, K., King, G., & Stuart, E. A. (2011). MatchIt: Nonparametric Preprocessing for Parametric Causal Inference. Journal of Statistical Software,42(i08).
+
+Sekhon, Jasjeet S. 2011. "Multivariate and Propensity Score Matching Software with Automated Balance Optimization: The Matching package for R." Journal of Statistical Software. 42(7): 1-52.
 
 
 <br>

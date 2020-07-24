@@ -511,7 +511,7 @@ write.csv( full.dat, "../DATA/02-processed-data/CensusPlusVotingAll.csv", row.na
 
 The original census data was obtained through the API using the `acs` package.
 
-The `censusapi` package above is a much more elegant method. For replication purposes the original code is included [here](01-01-deprecated-data-steps.html).
+The `censusapi` package above is a much more elegant method. For replication purposes the original code is included [here](old/01-01-deprecated-data-steps.html).
 
 
 
