@@ -22,7 +22,11 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ### [Identifying Nonprofits in Matched Districts](/CODE/03-spatial-join-nonprofits-to-vtds.R)
 
-### Coding Mission Statements  [taxonomies + protocol](CODE/mission-coding-protocols-final.pdf) [data](DATA/03-mission-statement-data/coded-mission-statements.xlsx) [intercode reliabiility tests](CODE/intercoder-reliability.R)  
+### Coding Mission Statements  
+
+- [ [taxonomies + protocol](CODE/mission-coding-protocols-final.pdf) ]  
+- [ [data](DATA/03-mission-statement-data/coded-mission-statements.xlsx) ]  
+- [ [intercode reliabiility tests](CODE/intercoder-reliability.R) ]  
 
 <br>
 
