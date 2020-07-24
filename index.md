@@ -16,15 +16,17 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ## Replication Steps
 
-### [ Data Steps ](/DATA/01-data-steps.html)
+### [Data Steps](/CODE/01-data-steps.html)
 
-### [Matching](/DATA/02-matching.html)
+### [Matching Rep and Dem Districts](/CODE/02-matching.html)
 
-### [Spatial Joins](/DATA/03-spatial-joins.html)
+### [Identifying Nonprofits in Matched Districts](/CODE/03-spatial-join-nonprofits-to-vtds.R)
 
-### [Analysis](/DATA/04-analysis.html)
+### Coding Mission Statements  
 
-### [Coding Missions](coding-mission.html)
+- [ [taxonomies + protocol](CODE/mission-coding-protocols-final.pdf) ]  
+- [ [coded mission statements](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/DATA/03-mission-statement-data/coded-mission-statements.xlsx) ]  
+- [ [intercoder reliabiility tests](https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/CODE/intercoder-reliability.R) ]  
 
 <br>
 
