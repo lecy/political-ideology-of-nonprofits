@@ -16,6 +16,8 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ## Replication Steps
 
+### [Raw Data Files](https://github.com/lecy/political-ideology-of-nonprofits/tree/master/DATA/01-raw-data)
+
 ### [Data Steps](/CODE/01-data-steps.html)
 
 ### [Matching Republican and Democrat Supermajority Districts](/CODE/02-matching.html)
