@@ -52,7 +52,7 @@ This file was generated from the data steps.
 
 
 ```{r, eval=T}
-dat <- read.csv( "https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/CensusPlusVotingAll.csv", stringsAsFactors=F )
+dat <- read.csv( "https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/02-processed-data/CensusPlusVotingAll.csv", stringsAsFactors=F )
 
 dat <- 
   dat %>% 
@@ -284,14 +284,14 @@ We now have 109 rows for democrats, and 109 rows of their republican dopelganger
 Save the new data frame: 
 
 ```{r}
-write.csv( balanced.data, "matched-pairs.csv", row.names=F )
+write.csv( balanced.data, "../DATA/02-processed-data/matched-pairs.csv", row.names=F )
 ```
 
 Although not necessary, we might also save the list of which cases are matched:
 
 ```{r}
 matches <- na.omit( matches )
-write.csv( matches, "matched-pairs-index.csv", row.names=F )
+write.csv( matches, "../DATA/02-processed-data/matched-pairs-index.csv", row.names=F )
 ```
 
 It may come in handy if you want to visualize matches, or do some post-hoc sensitivity analysis. 
