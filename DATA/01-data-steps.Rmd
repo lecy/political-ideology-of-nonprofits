@@ -366,7 +366,7 @@ head( tx )
 
 Voter district patterns. 
 
-```{r f3, fig.cap="Supermajority Districts" }
+```{r f3, fig.cap="Supermajority Districts in Red (R) and Blue (D)" }
 dem.count <- as.numeric( as.character( tx$Pres_D_08 ))
 rep.count <- as.numeric( as.character( tx$Pres_R_08 ))
 dem <- dem.count / ( dem.count + rep.count )
@@ -400,9 +400,9 @@ The **vtdname** variables has four forms:
 
 Each follows a format of:  SS-CCC-DIST
 
-SS = state fips code (2 digits)
-CCC = county fips code (3 digits)
-DIST = voting district (4 characters)
+* SS = state fips code (2 digits)  
+* CCC = county fips code (3 digits)  
+* DIST = voting district (4 characters)  
 
 ```{r}
 head( census.dat$vtdname, 50 )

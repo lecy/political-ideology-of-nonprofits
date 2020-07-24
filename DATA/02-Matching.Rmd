@@ -36,11 +36,12 @@ install.packages( "ggplot2" )
 
 
 ```{r}
-library( MatchIt )
-library( rgenoud )
-library( dplyr )
-library( ggplot2 )
-library( stargazer )
+library( MatchIt )    # popular matching package in R
+library( rgenoud )    # genetic search used in matching 
+library( dplyr )      # data wrangling 
+library( ggplot2 )    # nice graphs 
+library( stargazer )  # reports descriptive statistics 
+library( pander )     # formats tables for printing in RMD files  
 ```
 
 
@@ -50,20 +51,17 @@ library( stargazer )
 This file was generated from the data steps. 
 
 
-```{r}
+```{r, eval=T}
 dat <- read.csv( "https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/CensusPlusVotingAll.csv", stringsAsFactors=F )
-```
-
-
-```{r, eval=F}
-dat <- read.csv( "CensusPlusVotingAll.csv", stringsAsFactors=F )
 
 dat <- 
   dat %>% 
-  select( tract.key, pop10, Shape_area, medianage, 
-               income,totalpop, poverty, hispanic, 
-               white, black, Pres_D_08, Pres_R_08 ) %>%
-  mutate( pop.density = 10000*(pop10 / Shape_area) )
+  mutate( pop.density = 10000*(pop10 / Shape_area),
+          vote.dem = Pres_D_08 / (Pres_D_08+Pres_R_08) ) %>% 
+  select( vote.dem, white, black, poverty, pop.density, 
+          medianage, income, totalpop,  hispanic, 
+          vtd.key1, tract.key, pop10, Shape_area,
+          Pres_D_08, Pres_R_08 ) 
 
 head( dat )
 ```
@@ -72,22 +70,21 @@ head( dat )
 
 
 
-## Restrict Data to Supermajority Voting Districts
+# Restrict Data to Supermajority Voting Districts
 
 Restrict the sample to only districts that voted over 70% in favor of Obama in 2008, or over 70% in favor of McCain.
 
 ```{r}
-vote.dem <- dat$Pres_D_08 / (dat$Pres_D_08 + dat$Pres_R_08)
+dat$dem.super <- dat$vote.dem >= 0.70 
 
-dat$dem.super <- vote.dem > 0.70 
+dat$repub.super <- dat$vote.dem <= 0.30 
 
-dat$repub.super <- vote.dem < 0.30 
+dat.super <- dat[ dat$vote.dem <= 0.30 | dat$vote.dem >= 0.70 , ]
 
-match.dat <- dat[ vote.dem < 0.30 | vote.dem > 0.70 , ]
+dat.super <- na.omit( dat.super )
 
-match.dat <- na.omit( match.dat )
-
-head( match.dat )
+dat.super$party <- ifelse( dat.super$dem.super, "DEM", "REP" )
+dat.super$party <- factor( dat.super$party )
 ```
 
 
@@ -98,6 +95,11 @@ head( match.dat )
 
 # Match Voting Districts
 
+```{r, eval=F}
+library( MatchIt )
+library( rgenoud )
+```
+
 For details on the matching procedures see:
 
 Iacus, S. M., King, G., & Porro, G. (2012). Causal inference without balance checking: Coarsened exact matching. Political analysis, 20(1), 1-24.
@@ -107,283 +109,223 @@ Ho, D., Imai, K., King, G., & Stuart, E. A. (2011). MatchIt: Nonparametric Prepr
 Sekhon, Jasjeet S. 2011. "Multivariate and Propensity Score Matching Software with Automated Balance Optimization: The Matching package for R." Journal of Statistical Software. 42(7): 1-52.
 
 
+
+
 ```{r}
-# library( MatchIt )
-# library( rgenoud )
-
-match.dat$pop.density <- 1000 * as.numeric(match.dat$totalpop) / match.dat$Shape_area
-
-my.dat <- match.dat[ c("geoname","vtd.key1","vtd","tract.key","county","tract",
-                       "dem.super","pop.density","income",
+match.dat <- dat.super[ c("vtd.key1", "tract.key", "party", "dem.super",
+                       "pop.density","income","white",
                        "poverty","black","hispanic","medianage") ]
 
-head( my.dat )
+table( match.dat$party ) 
+```
 
-table( my.dat$dem.super ) 
+All supermajority districts in the sample: 
 
-summary( my.dat )
+```{r, results="asis"}
+match.dat %>%
+  select( dem.super, poverty, white, black, pop.density, 
+          income, medianage, hispanic ) %>% 
+          stargazer( type = "html", digits=2 )
 ```
 
 
 ```{r}
-# remove missing tract values
-nrow( my.dat )
-my.dat$income[ my.dat$income < 0 ] <- NA
-my.dat$medianage[ my.dat$medianage < 0 ] <- NA
-my.dat <- na.omit( my.dat )
-nrow( my.dat )
+head( match.dat )
 ```
 
 
-## Paper Approach
-
-This approach generates a weighted matched set using a genetic search algorith. Depending upon the underlying data, you can refined the matched sample by selecting pairs of voting districts from each set based upon matching weights. 
-
-
-```{r, eval=F}
-
-my.dat$pop.density <- my.dat$pop.density / 1000
-
-m.out <- matchit( dem.super ~ poverty + black + pop.density, data = my.dat, 
-                  method = "genetic", discard="both" )
-
-summary( m.out )
-summary( match.data(m.out, group = "treat") )
-summary( match.data(m.out, group = "control") )
-
-
-
-### Save the matched dataset
-
-m.dat <- match.data( m.out )
-
-nrow( m.dat )
-
-length( unique( m.dat$vtd.key1 ))
-
-table( m.dat$dem.super )
-
-
-
-t.test( as.numeric(m.dat$poverty) ~ m.dat$dem.super )
-t.test( as.numeric(m.dat$black) ~ m.dat$dem.super )
-t.test( m.dat$pop.density ~ m.dat$dem.super )
-
-
-
-library( ggplot2 )
-
-ddat <- m.dat
-
-ggplot( ddat, aes( x=poverty, fill=factor(dem.super) )) + 
-        geom_density(alpha = 0.5) + # xlim(10,15) +
-        xlab( "Poverty Rate" )
-
-ggplot( ddat, aes( x=black, fill=factor(dem.super) )) + 
-        geom_density(alpha = 0.5) + # xlim(10,15) +
-        xlab( "Percent Black" )
-
-ggplot( ddat, aes( x=pop.density, fill=factor(dem.super) )) + 
-        geom_density(alpha = 0.5) + xlim(0,.0025) +
-        xlab( "Population Density" )
-
-
-
-```
-
-
-
+The supermajority districts have very different demographic profiles. 
 
 ```{r}
+ddat <- match.dat
 
-### CREATE A BALANCED SET WITH ONLY ONE CONTROL COUNTY FOR EACH TREATMENT COUNTY
-
-matches <- m.out$match.matrix
-
-setdiff( row.names( matches),  row.names( my.dat ) )  # all in model dataset
-
-these.matched <- row.names( my.dat ) %in% row.names( matches)
-
-
-
-# keep only the closest matches - each treatment group appears once, controls can appear many
-
-dupes.temp <- data.frame( treat=row.names(matches), 
-                          control=matches[,1], 
-                          distance=m.out$distance[ these.matched ],
-                          stringsAsFactors=F )
-
-dupes.temp <- na.omit( dupes.temp[ order(dupes.temp$control) , ] )
-
-
-
-
-table( m.dat$dem.super )
-
-dupes <- NULL
-
-for( i in unique(dupes.temp$control) )
-{
-    sub.dupes <- dupes.temp[ dupes.temp$control == i , ]
-    
-    keep <- which( sub.dupes$distance == max(sub.dupes$distance) )
-    
-    dupes <- rbind( dupes, sub.dupes[ keep, ] )
-    
-}
-
-
-
-these.ones <- c( dupes$treat, dupes$control )
-
-balanced <- match.dat[ row.names(my.dat) %in% these.ones , ]
-
-table( balanced$dem.super )
-
-head( balanced )
-
-t.test( as.numeric(balanced$poverty) ~ balanced$dem.super )
-t.test( as.numeric(balanced$black) ~ balanced$dem.super )
-t.test( balanced$pop.density ~ balanced$dem.super )
-
-
-ddat <- balanced
-
-ggplot( ddat, aes( x=poverty, fill=factor(dem.super) )) + 
+ggplot( ddat, aes( x=poverty, fill=party )) + 
         geom_density(alpha = 0.5) + # xlim(10,15) +
         xlab( "Poverty Rate" )
 
-ggplot( ddat, aes( x=black, fill=factor(dem.super) )) + 
+ggplot( ddat, aes( x=black, fill=party )) + 
         geom_density(alpha = 0.5) + # xlim(10,15) +
         xlab( "Percent Black" )
 
-ggplot( ddat, aes( x=pop.density, fill=factor(dem.super) )) + 
+ggplot( ddat, aes( x=pop.density, fill=party )) + 
         geom_density(alpha = 0.5) + xlim(0,25) +
         xlab( "Population Density" )
-
-
 ```
 
 
 
-```{r}
-##############
 
 
-these.treat <- row.names(my.dat) %in% dupes$treat
-these.control <- row.names(my.dat) %in% dupes$control
-
-from.to.temp1 <- paste( match.dat[ these.treat , "vtd.key1" ], 
-                        "to", match.dat[ dupes$control , "vtd.key1" ], sep="-" )
-
-from.to.temp2 <- paste( match.dat[ these.control , "vtd.key1" ], 
-                        "to", match.dat[ these.treat , "vtd.key1" ], sep="-" )
-
-balanced$match.pair <- c( from.to.temp1, from.to.temp2 )
+## Matching Algorithm 
 
 
+We explored several of the matching procedures, but many failed to produce balanced samples.
 
+The approach presented here generates a weighted matched set using a genetic search algorithm available in the **rgenoud** package. 
 
-m.out2 <- matchit( dem.super ~ poverty + black + pop.density, data = balanced, 
-                  method = "genetic", discard="both", reestimate=TRUE )
+Depending upon the underlying data, you can refined the matched sample by selecting pairs of voting districts from each set based upon matching weights. 
 
-summary( m.out2 )
+```{r, results="hide"}
+# genetic search is a stochastic algorithm 
+# which uses random start points. 
+# Use a set seed if you want results to 
+# be reproducible. 
+
+set.seed( 1234 )
+
+# reset row names to make subsets easier below
+
+row.names( match.dat ) <- 1:nrow(match.dat) 
+
+m.out <- matchit( dem.super ~ poverty + black + pop.density, 
+                  data = match.dat, 
+                  method = "genetic", 
+                  discard="both", reestimate=TRUE, 
+                  replace=FALSE, caliper=.25 )
+
+# discard="both" disregards all cases outside of the common support region 
+#   prior to the matching process 
+#
+# reestimate=TRUE recalculates distance metrics after discarding cases
+#   outside of the common support region 
+#
+# replace=FALSE disallows one "control group" case being matched with multiple 
+#   treatment group cases
+#
+# caliper=0.25 prunes all matches that have a fit worse than a 0.25 sd distance apart
+
 ```
 
+If the matching process is successful you will get the following message (suppressed here for brevity because a bunch of output is printed at each iteration):
 
-## Alternative Approach
+
+```
+No significant improvement in 4 generations.
+
+Solution Lexical Fitness Value:
+9.678960e-03  2.358318e-02  4.812874e-02  6.144835e-02  6.619846e-02  6.355658e-01  9.781473e-01  9.998425e-01  
+
+Parameters at the Solution:
+
+ X[ 1] :	9.991076e+02
+ X[ 2] :	4.674203e+02
+ X[ 3] :	1.078070e+02
+ X[ 4] :	2.048367e+01
+
+Solution Found Generation 9
+Number of Generations Run 14
+
+Thu Jul 23 20:45:46 2020
+Total run time : 0 hours 0 minutes and 21 seconds
+```
+
+The final matched sample is as follows: 
 
 ```{r}
+m.out$nn %>% pander()
+```
 
-m.out <- matchit( dem.super ~ poverty + black + pop.density, data = my.dat, 
-                  method = "genetic", discard="both", reestimate=TRUE  )
+The treatment group is democratic supermajority districts, and the control group is republican supermajority districts. 
 
+There were 236 republican districts discarded because they fell outside of the general region of common support, but only 10 democratic districts. This suggests that republican districts tended to be more extreme (very white, more suburban or rural, and much wealthier. 
+
+Of the remaining cases after the discard stage we were able to find "doppenganger" districts for 109 cases or approximately 15% of the remaining candidates:  109 / (109+610) for democrats, and 109 / (109+555) for republicans. 
+
+These are the cases that we would interpret as being demographically "identical" except for political ideology (on a small set of covariates, at least). 
+
+We can check to see whether we have achieved balance:
+
+
+```{r}
 summary( m.out )
-summary( match.data(m.out, group = "treat") )
-summary( match.data(m.out, group = "control") )
+```
 
-m.dat3 <- match.data( m.out )
+## Examine Matches 
 
-summary( m.dat3 )
+We can print the list of matches. Each number represents the row ID of the observation, and an NA in the control group means no match was found for that particular democratic district. 
 
-t.test( poverty ~ dem.super, data=m.dat3 )
-t.test( black ~ dem.super, data=m.dat3 )
-t.test( hispanic ~ dem.super, data=m.dat3 )
-t.test( medianage ~ dem.super, data=m.dat3 )
-t.test( pop.density ~ dem.super, data=m.dat3 )
+```{r}
+matches <- data.frame( treatment.group.id = row.names( m.out$match.matrix), 
+                       control.group.id = m.out$match.matrix )
 
+head( matches, 25 )
+```
 
+When can then examine matched pairs to see how closely they align on the covariates: 
 
-m.out <- matchit( dem.super ~ poverty + hispanic + medianage,
-                  data=my.dat, method="exact", discard="both", reestimate=FALSE )
+```{r}
+# compare quality of matches
+# select id (row) of treated and id (row) of comparison,
+# compare on model covariates:
 
-m.out <- matchit( dem.super ~ poverty + hispanic + medianage,
-                  data=my.dat, method="exact", discard="both", reestimate=FALSE )
+# note the nice balance: 
 
-summary( m.out )
+covariates <- c("dem.super","poverty","black","pop.density")
 
-m.dat <- match.data( m.out )
+matched.rows <- c(63,889)
+match.dat[ matched.rows , covariates ] %>% pander()
 
-summary( match.data(m.out, group = "treat") )
-summary( match.data(m.out, group = "control") )
-
-
-# Refine match by adding population density
-
-m.out.2 <- matchit( dem.super ~ pop.density, data=m.dat, method="genetic", discard="none" )
-
-summary( m.out.2 )
-
-m.dat2 <- match.data( m.out.2, weights="weights2", subclass="subclass2" )
-
+matched.rows <- c(64,612)
+match.dat[ matched.rows , covariates ] %>% pander()
 ```
 
 
+## Save the Balanced Dataset
+
+To extract our new balanced data frame we can use the match.data() function from MatchIt. 
+
+```{r}
+balanced.data <- match.data( m.out )
+dim( balanced.data )
+```
+
+We now have 109 rows for democrats, and 109 rows of their republican dopelganger districts. 
+
+Save the new data frame: 
+
+```{r}
+write.csv( balanced.data, "matched-pairs.csv", row.names=F )
+```
+
+Although not necessary, we might also save the list of which cases are matched:
+
+```{r}
+matches <- na.omit( matches )
+write.csv( matches, "matched-pairs-index.csv", row.names=F )
+```
+
+It may come in handy if you want to visualize matches, or do some post-hoc sensitivity analysis. 
+
+One other good reason to set the random seed before creating the matched samples. 
 
 
-## Refine Matched Samples
+## Balanced Data
+
+We no longer have any demographic differences between our "treatment" and "control" group. They differ primarily on political ideology. 
 
 ```{r}
 
-keep.these <- names( table( m.dat$subclass ) ) [table( m.dat$subclass ) == 2 ]
-keep.these <- as.numeric( keep.these )
+table( balanced.data$party )
 
-m.dat2 <- m.dat[ m.dat$subclass %in% keep.these , ]
 
-m.dat2 <- m.dat2[ order(m.dat2$subclass,m.dat2$dem.super) , ]
+t.test( as.numeric(balanced.data$poverty) ~ balanced.data$party )
+t.test( as.numeric(balanced.data$black) ~ balanced.data$party )
+t.test( balanced.data$pop.density ~ balanced.data$party )
 
-m.dat2 <- m.dat2[ c("geoname","vtd","subclass","dem.super",
-                    "income","poverty","black","hispanic","medianage","pop.density")]
+ddat <- balanced.data
 
-m.dat2$pop.density <- round( m.dat2$pop.density, 1)
-m.dat2$income <- paste0( "$",format(m.dat2$income,big.mark=","))
+ggplot( ddat, aes( x=poverty, fill=party )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Poverty Rate" )
 
-names(m.dat2) <- c("census.tract","votind.district","match.group","dem.super",
-                   "income","poverty","black","hispanic","medianage","pop.density")
+ggplot( ddat, aes( x=black, fill=party )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Percent Black" )
 
-m.dat2
-
+ggplot( ddat, aes( x=pop.density, fill=party )) + 
+        geom_density(alpha = 0.5) + xlim(0,50) +
+        xlab( "Population Density" )
 ```
-
-
-## Comparison of Group Means
-
-
-```{r}
-
-t.test( poverty ~ dem.super, data=m.dat2 )
-t.test( black ~ dem.super, data=m.dat2 )
-t.test( hispanic ~ dem.super, data=m.dat2 )
-t.test( medianage ~ dem.super, data=m.dat2 )
-t.test( pop.density ~ dem.super, data=m.dat2 )
-
-
-```
-
-
-
-
-
 
 
 
@@ -393,7 +335,7 @@ t.test( pop.density ~ dem.super, data=m.dat2 )
 <br>
 
 
-# Citation
+## Citation
 
 Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results. *Public Performance & Management Review*, 42(1), 115-141. [DOWNLOAD](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/assets/Lecy-Ashley-Santamarina-PPMR-2019.pdf)
 

@@ -1,0 +1,502 @@
+---
+title: "Creating Matched Samples for Supermajority Voter Districts"
+output:
+  html_document:
+    theme: readable
+    df_print: paged
+    highlight: tango
+    smart: false
+    toc: yes
+    toc_float: no
+    code_folding: show
+---
+
+
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning=F, message=F, fig.width=8)
+
+```
+
+
+
+
+
+
+# R Packages
+
+
+```{r, eval=F}
+install.packages( "MatchIt" )
+install.packages( "rgenoud" )
+install.packages( "ggplot2" )
+```
+
+
+```{r}
+library( MatchIt )
+library( rgenoud )
+library( dplyr )
+library( ggplot2 )
+library( stargazer )
+```
+
+
+
+# Load Data
+
+This file was generated from the data steps. 
+
+
+```{r}
+dat <- read.csv( "https://raw.githubusercontent.com/lecy/political-ideology-of-nonprofits/master/DATA/CensusPlusVotingAll.csv", stringsAsFactors=F )
+```
+
+
+```{r, eval=F}
+dat <- read.csv( "CensusPlusVotingAll.csv", stringsAsFactors=F )
+
+dat <- 
+  dat %>% 
+  select( vtd.key1, tract.key, pop10, Shape_area, medianage, 
+               income, totalpop, poverty, hispanic, 
+               white, black, Pres_D_08, Pres_R_08 ) %>%
+  mutate( pop.density = 10000*(pop10 / Shape_area),
+          vote.dem = Pres_D_08 / (Pres_D_08+Pres_R_08) )
+
+head( dat )
+```
+
+
+
+
+
+## Restrict Data to Supermajority Voting Districts
+
+Restrict the sample to only districts that voted over 70% in favor of Obama in 2008, or over 70% in favor of McCain.
+
+```{r}
+# dat$vote.dem <- dat$Pres_D_08 / (dat$Pres_D_08 + dat$Pres_R_08)
+
+dat$dem.super <- dat$vote.dem >= 0.70 
+
+dat$repub.super <- dat$vote.dem <= 0.30 
+
+match.dat <- dat[ dat$vote.dem <= 0.30 | dat$vote.dem >= 0.70 , ]
+
+match.dat <- na.omit( match.dat )
+
+head( match.dat )
+```
+
+
+
+
+
+
+
+# Match Voting Districts
+
+For details on the matching procedures see:
+
+Iacus, S. M., King, G., & Porro, G. (2012). Causal inference without balance checking: Coarsened exact matching. Political analysis, 20(1), 1-24.
+
+Ho, D., Imai, K., King, G., & Stuart, E. A. (2011). MatchIt: Nonparametric Preprocessing for Parametric Causal Inference. Journal of Statistical Software,42(i08).
+
+Sekhon, Jasjeet S. 2011. "Multivariate and Propensity Score Matching Software with Automated Balance Optimization: The Matching package for R." Journal of Statistical Software. 42(7): 1-52.
+
+
+```{r}
+# library( MatchIt )
+# library( rgenoud )
+
+
+my.dat <- match.dat[ c("vtd.key1", "tract.key",
+                       "dem.super","pop.density","income",
+                       "poverty","black","hispanic","medianage") ]
+
+head( my.dat )
+
+table( my.dat$dem.super ) 
+
+# summary( my.dat )
+```
+
+
+```{r, results="asis"}
+match.dat %>%
+  select( income, pop.density, medianage, poverty,
+          hispanic, white, black ) %>% 
+          stargazer( type = "text", digits=0 )
+```
+
+
+
+
+
+
+## Paper Approach
+
+This approach generates a weighted matched set using a genetic search algorith. Depending upon the underlying data, you can refined the matched sample by selecting pairs of voting districts from each set based upon matching weights. 
+
+
+```{r, eval=F}
+
+# my.dat$pop.density <- my.dat$pop.density / 1000
+
+m.out <- matchit( dem.super ~ poverty + black + pop.density, data = match.dat, 
+                  method = "genetic", discard="both" )
+
+summary( m.out )
+summary( match.data(m.out, group = "treat") )
+summary( match.data(m.out, group = "control") )
+
+
+
+### Save the matched dataset
+
+m.dat <- match.data( m.out )
+
+nrow( m.dat )
+
+length( unique( m.dat$tract.key  ))
+
+table( m.dat$dem.super )
+
+
+
+t.test( as.numeric(m.dat$poverty) ~ m.dat$dem.super )
+t.test( as.numeric(m.dat$black) ~ m.dat$dem.super )
+t.test( m.dat$pop.density ~ m.dat$dem.super )
+
+
+
+library( ggplot2 )
+
+ddat <- m.dat
+
+ggplot( ddat, aes( x=poverty, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Poverty Rate" )
+
+ggplot( ddat, aes( x=black, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Percent Black" )
+
+ggplot( ddat, aes( x=pop.density, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + xlim(0,.0025) +
+        xlab( "Population Density" )
+
+
+
+```
+
+
+
+
+```{r}
+
+match.dat$pop.density <- my.dat$pop.density / 1000
+
+match.dat <- filter( match.dat, pop.density < 30 )
+
+
+
+m.out <- matchit( dem.super ~ poverty + black + pop.density, data = match.dat, 
+                  method = "genetic", discard="both" )
+
+m.dat <- match.data( m.out )
+
+
+### CREATE A BALANCED SET WITH ONLY ONE CONTROL COUNTY FOR EACH TREATMENT COUNTY
+
+matches <- m.out$match.matrix
+
+setdiff( row.names( matches),  row.names( match.dat ) )  # all in model dataset
+
+these.matched <- row.names( match.dat ) %in% row.names( matches)
+
+
+
+# keep only the closest matches - each treatment group appears once, controls can appear many
+
+dupes.temp <- data.frame( treat=row.names(matches), 
+                          control=matches[,1], 
+                          distance=m.out$distance[ these.matched ],
+                          stringsAsFactors=F )
+
+dupes.temp <- na.omit( dupes.temp[ order(dupes.temp$control) , ] )
+
+
+
+
+table( m.dat$dem.super )
+
+dupes <- NULL
+
+for( i in unique(dupes.temp$control) )
+{
+    sub.dupes <- dupes.temp[ dupes.temp$control == i , ]
+    
+    keep <- which( sub.dupes$distance == max(sub.dupes$distance) )
+    
+    dupes <- rbind( dupes, sub.dupes[ keep, ] )
+    
+}
+
+
+
+these.ones <- c( dupes$treat, dupes$control )
+
+balanced <- match.dat[ row.names(match.dat) %in% these.ones , ]
+
+table( balanced$dem.super )
+
+head( balanced )
+
+t.test( as.numeric(balanced$poverty) ~ balanced$dem.super )
+t.test( as.numeric(balanced$black) ~ balanced$dem.super )
+t.test( balanced$pop.density ~ balanced$dem.super )
+
+
+match.dat$pop.density = match.dat$pop.density * 1000
+match.dat %>% arrange( - pop.density ) %>% head( 10 )
+
+total.voters <- dat$Pres_D_08 + dat$Pres_R_08
+summary( total.voters )
+
+
+
+ddat <- match.dat
+
+ggplot( ddat, aes( x=poverty, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Poverty Rate" )
+
+ggplot( ddat, aes( x=black, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Percent Black" )
+
+ggplot( ddat, aes( x=pop.density, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + xlim(0,25) +
+        xlab( "Population Density" )
+
+
+
+ddat <- balanced
+
+ggplot( ddat, aes( x=poverty, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Poverty Rate" )
+
+ggplot( ddat, aes( x=black, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + # xlim(10,15) +
+        xlab( "Percent Black" )
+
+ggplot( ddat, aes( x=pop.density, fill=factor(dem.super) )) + 
+        geom_density(alpha = 0.5) + xlim(0,50) +
+        xlab( "Population Density" )
+
+
+```
+
+
+
+```{r}
+##############
+
+
+these.treat <- row.names(my.dat) %in% dupes$treat
+these.control <- row.names(my.dat) %in% dupes$control
+
+from.to.temp1 <- paste( match.dat[ these.treat , "vtd.key1" ], 
+                        "to", match.dat[ dupes$control , "vtd.key1" ], sep="-" )
+
+from.to.temp2 <- paste( match.dat[ these.control , "vtd.key1" ], 
+                        "to", match.dat[ these.treat , "vtd.key1" ], sep="-" )
+
+balanced$match.pair <- c( from.to.temp1, from.to.temp2 )
+
+
+
+
+m.out2 <- matchit( dem.super ~ poverty + black + pop.density, data = balanced, 
+                  method = "genetic", discard="both", reestimate=TRUE )
+
+summary( m.out2 )
+```
+
+
+## Alternative Approach
+
+```{r}
+
+m.out <- matchit( dem.super ~ poverty + black + pop.density, data = my.dat, 
+                  method = "genetic", discard="both", reestimate=TRUE  )
+
+summary( m.out )
+summary( match.data(m.out, group = "treat") )
+summary( match.data(m.out, group = "control") )
+
+m.dat3 <- match.data( m.out )
+
+summary( m.dat3 )
+
+t.test( poverty ~ dem.super, data=m.dat3 )
+t.test( black ~ dem.super, data=m.dat3 )
+t.test( hispanic ~ dem.super, data=m.dat3 )
+t.test( medianage ~ dem.super, data=m.dat3 )
+t.test( pop.density ~ dem.super, data=m.dat3 )
+
+
+
+m.out <- matchit( dem.super ~ poverty + hispanic + medianage,
+                  data=my.dat, method="exact", discard="both", reestimate=FALSE )
+
+m.out <- matchit( dem.super ~ poverty + hispanic + medianage,
+                  data=my.dat, method="exact", discard="both", reestimate=FALSE )
+
+summary( m.out )
+
+m.dat <- match.data( m.out )
+
+summary( match.data(m.out, group = "treat") )
+summary( match.data(m.out, group = "control") )
+
+
+# Refine match by adding population density
+
+m.out.2 <- matchit( dem.super ~ pop.density, data=m.dat, method="genetic", discard="none" )
+
+summary( m.out.2 )
+
+m.dat2 <- match.data( m.out.2, weights="weights2", subclass="subclass2" )
+
+```
+
+
+
+
+## Refine Matched Samples
+
+```{r}
+
+keep.these <- names( table( m.dat$subclass ) ) [table( m.dat$subclass ) == 2 ]
+keep.these <- as.numeric( keep.these )
+
+m.dat2 <- m.dat[ m.dat$subclass %in% keep.these , ]
+
+m.dat2 <- m.dat2[ order(m.dat2$subclass,m.dat2$dem.super) , ]
+
+m.dat2 <- m.dat2[ c("geoname","vtd","subclass","dem.super",
+                    "income","poverty","black","hispanic","medianage","pop.density")]
+
+m.dat2$pop.density <- round( m.dat2$pop.density, 1)
+m.dat2$income <- paste0( "$",format(m.dat2$income,big.mark=","))
+
+names(m.dat2) <- c("census.tract","votind.district","match.group","dem.super",
+                   "income","poverty","black","hispanic","medianage","pop.density")
+
+m.dat2
+
+```
+
+
+## Comparison of Group Means
+
+
+```{r}
+
+t.test( poverty ~ dem.super, data=m.dat2 )
+t.test( black ~ dem.super, data=m.dat2 )
+t.test( hispanic ~ dem.super, data=m.dat2 )
+t.test( medianage ~ dem.super, data=m.dat2 )
+t.test( pop.density ~ dem.super, data=m.dat2 )
+
+
+```
+
+
+
+
+
+
+
+
+
+<br>
+<hr>
+<br>
+
+
+# Citation
+
+Lecy, J. D., Ashley, S. R., & Santamarina, F. J. (2019). Do nonprofit missions vary by the political ideology of supporting communities? Some preliminary results. *Public Performance & Management Review*, 42(1), 115-141. [DOWNLOAD](https://github.com/lecy/political-ideology-of-nonprofits/raw/master/assets/Lecy-Ashley-Santamarina-PPMR-2019.pdf)
+
+
+
+<br>
+<hr>
+<br>
+<br>
+
+
+```{css, echo=F, eval=T}
+p {
+  color: black;
+  font-size:1.2em;
+  margin: 20px 0 20px 0 !important;
+}
+
+p.caption {
+  text-align: center;
+  font-weight: bold;
+}
+
+th { font-weight: bold; }
+
+td {
+    padding: 3px 10px 3px 10px !important;
+    text-align: center;
+}
+
+table
+{ 
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:80px;
+    margin-bottom:100px;
+}
+
+h1, h2, h3{
+  margin-top:100px !important;
+  margin-bottom:20px !important;
+}
+
+h5{
+    text-align: center;
+    color: gray;
+    font-size:0.8em;
+}
+
+img {
+    max-width: 90%;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top:30px !important;
+    margin-bottom:30px !important;
+}
+
+
+.sourceCode {
+   margin-top:50px;
+}
+
+.pagedtable-wrapper {
+   margin-bottom:30px;
+}
+```
+
