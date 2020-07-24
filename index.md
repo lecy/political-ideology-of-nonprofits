@@ -16,13 +16,11 @@ Voting District to Census Tract Crosswalk: [ [Missouri Census Data Center](http:
 
 ## Replication Steps
 
-### [ Data Steps ](/CODE/01-data-steps.html)
+### [Data Steps](/CODE/01-data-steps.html)
 
-### [Matching](/CODE/02-matching.html)
+### [Matching Rep and Dem Districts](/CODE/02-matching.html)
 
-### [Spatial Joins](/CODE/03-spatial-join-nonprofits-to-vtds.R)
-
-### [Analysis](/DATA/04-analysis.html)
+### [Identifying Nonprofits in Matched Districts](/CODE/03-spatial-join-nonprofits-to-vtds.R)
 
 ### Coding Mission Statements  [taxonomies + protocol](CODE/mission-coding-protocols-final.pdf) [data](DATA/03-mission-statement-data/coded-mission-statements.xlsx) [intercode reliabiility tests](CODE/intercoder-reliability.R)  
 
