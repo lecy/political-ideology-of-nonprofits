@@ -233,16 +233,27 @@ Of the remaining cases after the discard stage we were able to find "doppengange
 
 These are the cases that we would interpret as being demographically "identical" except for political ideology (on a small set of covariates, at least). 
 
-We can check to see whether we have achieved balance:
 
+## Examine Matches 
+
+We can check to see whether we have achieved balance:
 
 ```{r}
 summary( m.out )
 ```
 
-## Examine Matches 
+Graphically: 
 
-We can print the list of matches. Each number represents the row ID of the observation, and an NA in the control group means no match was found for that particular democratic district. 
+```{r, fig.width=10, fig.height=6, results="hide"}
+par( mfrow=c(1,2) )
+plot( m.out, type="jitter" )
+plot( m.out )
+```
+
+
+For some more graphical representations of balance see the [**cobalt package**](https://cran.r-project.org/web/packages/cobalt/vignettes/cobalt_A0_basic_use.html) in R.
+
+We can also print the list of matches. Each number represents the row ID of the observation, and an NA in the control group means no match was found for that particular democratic district. 
 
 ```{r}
 matches <- data.frame( treatment.group.id = row.names( m.out$match.matrix), 
@@ -299,7 +310,7 @@ It may come in handy if you want to visualize matches, or do some post-hoc sensi
 One other good reason to set the random seed before creating the matched samples. 
 
 
-## Balanced Data
+## Check Balance
 
 We no longer have any demographic differences between our "treatment" and "control" group. They differ primarily on political ideology. 
 
