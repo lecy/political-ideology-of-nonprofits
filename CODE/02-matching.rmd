@@ -246,8 +246,8 @@ Graphically:
 
 ```{r, fig.width=10, fig.height=6, results="hide"}
 par( mfrow=c(1,2) )
-plot( m.out, type="jitter" )
 plot( m.out )
+plot( m.out, type="jitter" )
 ```
 
 
